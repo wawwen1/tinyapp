@@ -16,5 +16,8 @@
   "bugs": {
     "url": "https://github.com/wawwen1/tinyapp/issues"
   },
-  "homepage": "https://github.com/wawwen1/tinyapp#readme"
+  "homepage": "https://github.com/wawwen1/tinyapp#readme",
+  "dependencies": {
+    "express": "^4.17.3"
+  }
 }
