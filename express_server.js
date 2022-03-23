@@ -4,7 +4,7 @@ const PORT = 3000; // default port 8080
 
 const bodyParser = require("body-parser");
 app.use(bodyParser.urlencoded({extended: true}));
-app.set('view engine', 'ejs');
+app.set("view engine", "ejs");
 
 const generateRandomString = () => {
   const chars = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
@@ -38,8 +38,7 @@ app.get("/hello", (req, res) => {
 });
 
 app.get("/urls", (req, res) => {
-  let urls = urlDatabase
-  const templateVars = { urls };
+  const templateVars = { urls: urlDatabase };
   res.render("urls_index", templateVars);
 });
 
@@ -50,20 +49,21 @@ app.get("/urls/new", (req, res) => {
 app.get("/urls/:shortURL", (req, res) => {
   const shortURL = req.params.shortURL;
   const baseURL = urlDatabase[shortURL];
-  const longURL = baseURL.longURL
+  const longURL = baseURL.longURL;
 
   const templateVars = { shortURL, longURL };
   res.render("urls_show", templateVars);
 });
 
 app.get("/u/:shortURL", (req, res) => {
-  const baseURL = urlDatabase[req.params.shortURL];
-  res.redirect(baseURL.longURL);
+  const shortURL = req.params.shortURL;
+  const longURL = urlDatabase[shortURL]
+  res.redirect(longURL);
 });
 
 // -------------- POST
 
-//new URL and redirect to /urls
+//create new URL and redirect to /urls
 app.post("/urls", (req, res) => {
   let longURL = req.body.longURL;
   
@@ -73,5 +73,13 @@ app.post("/urls", (req, res) => {
   
   const shortURL = generateRandomString();
   urlDatabase[shortURL] = { longURL };
+
   res.redirect(`/urls/${shortURL}`);
+});
+
+//delete existing URL
+app.post("/urls/:shortURL/delete", (req, res) => {
+  let shortURL = req.params.shortURL;
+  delete urlDatabase[shortURL];
+  res.redirect("/urls");
 });
