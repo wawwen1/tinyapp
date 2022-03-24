@@ -66,12 +66,6 @@ app.get("/urls/new", (req, res) => {
   res.render("urls_new", templateVars);
 })
 
-
-app.get("/urls/:shortURL/edit", (req, res) => {
-  console.log('here');
-  res.redirect(`/urls/${req.params.shortURL}`)
-});
-
 app.get("/urls/:shortURL", (req, res) => {
   const templateVars = { 
     shortURL: req.params.shortURL,
@@ -83,12 +77,12 @@ app.get("/urls/:shortURL", (req, res) => {
 
 app.get("/u/:shortURL", (req, res) => {
   const longURL = urlDatabase[req.params.shortURL];
-  res.redirect(longURL);
+  return res.redirect(longURL);
 });
 
 //post
 
-//create new URL and redirect to /urls/:shortID
+//CREATE NEW URL 
 app.post("/urls", (req, res) => {
   const shortURL = generateRandomString();
   const longURL = req.body.longURL
@@ -104,17 +98,15 @@ app.post("/urls/:shortURL/delete", (req, res) => {
 });
 
 //EDIT EXISTING URL
-
-
 app.post("/urls/:shortURL", (req, res) => {
   const shortURL = req.params.shortURL
   urlDatabase[shortURL] = req.body.longURL;
   res.redirect(`/urls/${shortURL}`);
-  //res.send(req.body.longURL);
 });
 
-
-
+app.get("/urls/:shortURL/edit", (req, res) => {
+  res.redirect(`/urls/${req.params.shortURL}`);
+});
 
 //LOGIN
 app.post("/login", (req, res) => {
@@ -124,11 +116,11 @@ app.post("/login", (req, res) => {
 
 //LOGOUT
 app.post("/logout", (req, res) => {
-  res.clearCookie("username");
+  res.clearCookie("user_id");
   res.redirect("/urls");
 });
 
-//register
+//REGISTER
 app.get("/register", (req, res) => {
   const templateVars = { user: users[req.cookies.user_id] };
   res.render("urls_register", templateVars);
@@ -136,12 +128,30 @@ app.get("/register", (req, res) => {
 
 app.post("/register", (req, res) => {
   const newID = generateRandomString();
+  const { email, password } = req.body;
+
+  if (!email || !password) {
+    return res.status(400).send("Invalid input");
+  }
+
+  if (emailCheck(email)) {
+    return res.status(400).send("Email is already registered");
+  }
   users[newID] = {
     id: newID,
-    email: req.body.emailnewEmail,
+    email: req.body.email,
     password: req.body.password
   };
   console.log(users);
   res.cookie("user_id", newID);
   res.redirect("/urls");
 });
+
+const emailCheck = (email) => {
+  for (let user in users) {
+    if (users[user].email === email) {
+      return true;
+    }
+  }
+  return false;
+}
