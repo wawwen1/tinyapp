@@ -84,9 +84,9 @@ app.post("/urls/:shortURL/delete", (req, res) => {
 });
 
 //edit existing URL
-app.post("/urls/:shortURL", (req, res) => {
-  const shortURL = req.params.shortURL;
-  urlDatabase[shortURL].longURL = req.body.newURL;
+app.post("/urls/:id", (req, res) => {
+  const shortURL = req.params.id
+  urlDatabase[shortURL] = req.body.longURL;
   res.redirect(`/urls/${shortURL}`);
 });
 
