@@ -11,15 +11,15 @@
       </div>
     </div>
       
-    <% if (username) { %>
+    <% if (user) { %>
       <form action="/logout" method="POST" class="form-inline">
-        <div class="navbar-nav">Logged in as: <%= username %></div> 
+        <div class="navbar-nav">Logged in as: <%= user.email %></div> 
         <button type="submit" class="btn btn-primary">Logout</button>
       </form>
         <% } else { %>
           <form action="/login" method="POST" clas="form-inline">
-            <input type=text name="username" placeholder="Username">
-            <button type="login" class="btn btn-primary">Login</button>
+            <input type="text" name="username" placeholder="Username" style="margin: 1em">
+            <button type="submit" class="btn btn-primary">Login</button>
         </form>
         <% } %>
   </nav>
