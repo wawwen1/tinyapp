@@ -1,13 +1,15 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <!-- Bootstrap CSS -->
-  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/css/bootstrap.min.css" integrity="sha384-GJzZqFGwb1QTTN6wy59ffF1BuGJpLSa9DkKMp0DgiMDm4iYMj70gZWKYbI706tWS" crossorigin="anonymous">
-  <title>URL - TinyApp Example</title>
-</head>
+  <head>
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/css/bootstrap.min.css" integrity="sha384-GJzZqFGwb1QTTN6wy59ffF1BuGJpLSa9DkKMp0DgiMDm4iYMj70gZWKYbI706tWS" crossorigin="anonymous">
+    <title>URL - TinyApp Example</title>
+  </head>
+  
+  <body>
 
-<body>
   <%- include('partials/_header') %>
+
   <div class="card text-center">
       <div class="card-header"></div>
       <div class="card-body">
@@ -16,9 +18,9 @@
       </div>
     <div class="card-footer text-muted"></div>
       <h5 class="edit">Edit</h5>
-    <form action="/urls/<%= shortURL %>/edit" method="post">
-      <label for ="newURL">New URL:</label>
-      <input type="text" id="newURL">
+    <form action="/urls/<%= shortURL %>" method="POST">
+      <label form ="name">New URL:</label>
+      <input type="text" id="longURL">
       <button type="submit" class="btn btn-primary">Submit</button>
     </form>
   </div>

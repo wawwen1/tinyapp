@@ -3,13 +3,15 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-
+  
   <!-- Bootstrap CSS -->
   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/css/bootstrap.min.css" integrity="sha384-GJzZqFGwb1QTTN6wy59ffF1BuGJpLSa9DkKMp0DgiMDm4iYMj70gZWKYbI706tWS" crossorigin="anonymous">
   <title>TinyApp</title>
 </head>
 <body>
-  <%- include('partials/_header') %>
+
+  <%- include('partials/_header.ejs') %>
+
   <main style="margin: 1em;">
     <h3>My URLs</h3>
     <table class="table">
@@ -27,12 +29,12 @@
             <td><%= url %></td>
             <td><%= urls[url].longURL %></td>
             <td>
-              <form action="/urls/<%= url %>/edit" method="post">
-                <button type="edit" class="btn btn-outline-primary">Edit</button>
+              <form action="/urls/<%= url %>/edit" method="POST">
+                <button type="submit" class="btn btn-outline-primary">Edit</button>
                 </form>
                 </td>
                 <td>
-              <form action="/urls/<%= url %>/delete" method="post">
+              <form action="/urls/<%= url %>/delete" method="POST">
                 <button type="submit" class="btn btn-outline-danger">Delete</button>
               </form>
             </td>
