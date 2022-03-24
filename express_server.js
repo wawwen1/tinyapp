@@ -1,10 +1,12 @@
 const express = require("express");
 const app = express();
+
 const PORT = 3000; // default port 8080
 
-const bodyParser = require("body-parser");
-app.use(bodyParser.urlencoded({extended: true}));
 app.set("view engine", "ejs");
+
+const bodyParser = require("body-parser");
+app.use(bodyParser.urlencoded({ extended: true }));
 
 const generateRandomString = () => {
   const chars = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
@@ -17,8 +19,8 @@ const generateRandomString = () => {
 }
 
 const urlDatabase = {
-  "b2xTn2": "http://www.lighthouselabs.ca",
-  "9sm5xK": "http://www.google.com"
+  'b2xTn2': { longURL: "http://www.lighthouselabs.ca" },
+  '9sm5xK': { longURL: "http://www.google.com" }
 };
 
 app.get("/", (req, res) => {
@@ -38,7 +40,7 @@ app.get("/hello", (req, res) => {
 });
 
 app.get("/urls", (req, res) => {
-  const templateVars = { urls: urlDatabase };
+  const templateVars = { urls: urlDatabase } ;
   res.render("urls_index", templateVars);
 });
 
@@ -48,24 +50,22 @@ app.get("/urls/new", (req, res) => {
 
 app.get("/urls/:shortURL", (req, res) => {
   const shortURL = req.params.shortURL;
-  const baseURL = urlDatabase[shortURL];
-  const longURL = baseURL.longURL;
-
+  let longURL = urlDatabase[shortURL].longURL;
   const templateVars = { shortURL, longURL };
   res.render("urls_show", templateVars);
 });
 
 app.get("/u/:shortURL", (req, res) => {
   const shortURL = req.params.shortURL;
-  const longURL = urlDatabase[shortURL]
+  let longURL = urlDatabase[shortURL].longURL;
   res.redirect(longURL);
 });
 
 // -------------- POST
 
-//create new URL and redirect to /urls
+//create new URL and redirect to /urls/:shortID
 app.post("/urls", (req, res) => {
-  let longURL = req.body.longURL;
+  let { longURL } = req.body;
   
   if (!longURL.startsWith('http')) {
     longURL = `http://${longURL}`;
@@ -79,7 +79,16 @@ app.post("/urls", (req, res) => {
 
 //delete existing URL
 app.post("/urls/:shortURL/delete", (req, res) => {
-  let shortURL = req.params.shortURL;
+  const shortURL = req.params.shortURL;
   delete urlDatabase[shortURL];
+  res.redirect("/urls");
+});
+
+//edit existing URL
+app.post("/urls/:id", (req, res) => {
+  const shortURL = req.params.id;
+  console.log(req.body);
+  let longURL = req.body.longURL;
+  urlDatabase[shortURL].longURL = longURL;
   res.redirect("/urls");
 });
