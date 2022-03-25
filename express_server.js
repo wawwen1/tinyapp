@@ -37,8 +37,8 @@ const users = {
 }
 
 const urlDatabase = {
-  'b2xTn2': { longURL: "http://www.lighthouselabs.ca" },
-  '9sm5xK': { longURL: "http://www.google.com" }
+  'b2xTn2': { longURL: "http://www.lighthouselabs.ca", userID: "hahahey" },
+  '9sm5xK': { longURL: "http://www.google.com", userID: "lolnice" }
 };
 
 app.get("/", (req, res) => {
@@ -62,8 +62,12 @@ app.get("/urls", (req, res) => {
 });
 
 app.get("/urls/new", (req, res) => {
-  const templateVars = { user: users[req.cookies.user_id] }
-  res.render("urls_new", templateVars);
+  if (req.cookies.user_id) {
+    const templateVars = { user: users[req.cookies.user_id] }
+    res.render("urls_new", templateVars);
+  } else {
+    res.redirect("/urls");
+  }
 })
 
 app.get("/urls/:shortURL", (req, res) => {
