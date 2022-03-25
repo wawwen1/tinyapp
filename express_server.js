@@ -23,6 +23,10 @@ const generateRandomString = () => {
   return result;
 }
 
+const urlsForUser = (id) => {
+
+}
+
 const users = {
   "hahahey": {
     id: "hahahey",
@@ -62,13 +66,12 @@ app.get("/urls", (req, res) => {
 });
 
 app.get("/urls/new", (req, res) => {
-  if (req.cookies.user_id) {
-    const templateVars = { user: users[req.cookies.user_id] }
-    res.render("urls_new", templateVars);
-  } else {
-    res.redirect("/urls");
+  if (!req.cookies.user_id) {
+    return res.redirect(401, "/login");
   }
-})
+  const templateVars = { user: users[req.cookies.user_id] }
+  res.render("urls_new", templateVars);
+});
 
 app.get("/urls/:shortURL", (req, res) => {
   const templateVars = { 
@@ -87,6 +90,10 @@ app.get("/u/:shortURL", (req, res) => {
 
 //CREATE NEW URL 
 app.post("/urls", (req, res) => {
+  if (!req.cookies.user_id) {
+    return res.redirect(401, "/login")
+  }
+
   const shortURL = generateRandomString();
   let longURL = req.body.longURL
 
