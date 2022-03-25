@@ -84,6 +84,7 @@ app.get("/urls/:shortURL", (req, res) => {
     shortURL: req.params.shortURL,
     longURL: urlDatabase[req.params.shortURL].longURL,
     user: users[req.cookies.user_id],
+    urls: urlsForUser(req.cookies.user_id)
    };
   res.render("urls_show", templateVars);
 });
@@ -137,7 +138,7 @@ app.post("/urls/:shortURL", (req, res) => {
     return res.send("You do not have permission to edit this URL");
   }
   const shortURL = req.params.shortURL
-  urlDatabase[shortURL] = req.body.longURL;
+  urlDatabase[shortURL].longURL = req.body.longURL;
   res.redirect(`/urls/${shortURL}`);
 });
 
