@@ -80,8 +80,7 @@ app.get("/urls/:shortURL", (req, res) => {
 });
 
 app.get("/u/:shortURL", (req, res) => {
-  const longURL = urlDatabase[req.params.shortURL];
-  return res.redirect(longURL);
+  return res.redirect(urlDatabase[req.params.shortURL].longURL);
 });
 
 //post
@@ -89,8 +88,16 @@ app.get("/u/:shortURL", (req, res) => {
 //CREATE NEW URL 
 app.post("/urls", (req, res) => {
   const shortURL = generateRandomString();
-  const longURL = req.body.longURL
-  urlDatabase[shortURL] = { longURL };
+  let longURL = req.body.longURL
+
+  if (!longURL.startsWith("http")) {
+    longURL = `http.//${longURL}`;
+  }
+
+  urlDatabase[shortURL] = { 
+    longURL,
+    userID: req.cookies.user_id 
+  };
   res.redirect(`/urls/${shortURL}`);
 });
 
