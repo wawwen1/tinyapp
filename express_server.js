@@ -109,9 +109,21 @@ app.get("/urls/:shortURL/edit", (req, res) => {
 });
 
 //LOGIN
+app.get("/login", (req, res) => {
+  const templateVars = { user: users[req.cookies.user_id] };
+  res.render("urls_login", templateVars);
+});
+
 app.post("/login", (req, res) => {
-  res.cookie("username", req.body.username);
-  return res.redirect("/urls");
+  const { email, password } = req.body;
+  let userInfo = emailCheck(email);
+
+  if (userInfo && users[userInfo].password === password) {
+    res.cookie("user_id", users[userInfo].id)
+    res.redirect("/urls");
+  } else {
+    res.status(403).send("Email or password is incorrect");
+  }
 });
 
 //LOGOUT
@@ -150,7 +162,7 @@ app.post("/register", (req, res) => {
 const emailCheck = (email) => {
   for (let user in users) {
     if (users[user].email === email) {
-      return true;
+      return user;
     }
   }
   return false;
