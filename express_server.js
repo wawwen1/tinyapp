@@ -8,8 +8,10 @@ app.set("view engine", "ejs");
 const bodyParser = require("body-parser");
 app.use(bodyParser.urlencoded({ extended: true }));
 
-const cookieParser = require('cookie-parser');
+const cookieParser = require("cookie-parser");
 app.use(cookieParser());
+
+const bcrypt = require("bcryptjs");
 
 //-------------------------------------------------
 
@@ -156,7 +158,7 @@ app.post("/login", (req, res) => {
   const { email, password } = req.body;
   let userInfo = emailCheck(email);
 
-  if (userInfo && users[userInfo].password === password) {
+  if (userInfo && bcrypt.compareSync(password, users[userInfo].password)) {
     res.cookie("user_id", users[userInfo].id)
     res.redirect("/urls");
   } else {
@@ -183,16 +185,16 @@ app.post("/register", (req, res) => {
   if (!email || !password) {
     return res.status(400).send("Invalid input");
   }
-
   if (emailCheck(email)) {
     return res.status(400).send("Email is already registered");
   }
+
+  const hashedPassword = bcrypt.hashSync(password, 10);
   users[newID] = {
     id: newID,
-    email: req.body.email,
-    password: req.body.password
+    email,
+    password: hashedPassword
   };
-  console.log(users);
   res.cookie("user_id", newID);
   res.redirect("/urls");
 });
