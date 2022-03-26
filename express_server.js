@@ -2,10 +2,9 @@ const express = require("express");
 const app = express();
 const bodyParser = require("body-parser");
 const bcrypt = require("bcryptjs");
-const cookieParser = require("cookie-parser");
 const cookieSession = require("cookie-session");
 const PORT = 3000;
-const { getUserByEmail } = require("./helpers");
+const { getUserByEmail, emailCheck, generateRandomString, urlsForUser } = require("./helpers");
 
 app.set("view engine", "ejs");
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -13,32 +12,16 @@ app.use(cookieSession({
   name: "session",
   keys: ["key1", "key2"]
 }));
+
+app.get("/urls.json", (req, res) => {
+  res.json(urlDatabase);
+});
+
+app.listen(PORT, () => {
+  console.log(`Example app listening on port ${PORT}!`);
+});
+
 //-------------------------------------------------
-
-
-
-
-
-
-const generateRandomString = () => {
-  const chars = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
-  let result = '';
-
-  for (let i = 0; i < 6; i++) {
-    result += chars.charAt(Math.floor(Math.random() * (chars.length)));
-  }
-  return result;
-}
-
-const urlsForUser = (id) => {
-  let filtered = {};
-  for (let url in urlDatabase) {
-    if (urlDatabase[url].userID === id) {
-      filtered[url] = urlDatabase[url];
-    }
-  }
-  return filtered;
-}
 
 const users = {
   "hahahey": {
@@ -51,7 +34,7 @@ const users = {
     email: "user2@example.com",
     password: "smellyfeet"
   }
-}
+};
 
 const urlDatabase = {
   'b2xTn2': { longURL: "http://www.lighthouselabs.ca", userID: "hahahey" },
@@ -62,66 +45,76 @@ app.get("/", (req, res) => {
   res.redirect("/urls");
 });
 
-app.listen(PORT, () => {
-  console.log(`Example app listening on port ${PORT}!`);
-});
-
-app.get("/urls.json", (req, res) => {
-  res.json(urlDatabase);
-});
-
+//VIEW URLS
 app.get("/urls", (req, res) => {
-  const templateVars = { 
-    urls: urlsForUser(req.session.user_id),
+  const templateVars = {
+    urls: urlsForUser(req.session.user_id, urlDatabase),
     user: users[req.session.user_id]
   };
   res.render("urls_index", templateVars);
 });
 
-app.get("/urls/new", (req, res) => {
-  if (!req.session.user_id) {
-    return res.redirect(401, "/login")
-  }
-  const templateVars = { user: users[req.session.user_id] }
-  res.render("urls_new", templateVars);
-});
-
-app.get("/urls/:shortURL", (req, res) => {
-  const templateVars = { 
-    shortURL: req.params.shortURL,
-    longURL: urlDatabase[req.params.shortURL].longURL,
-    user: users[req.session.user_id],
-    urls: urlsForUser(req.session.user_id)
-   };
-  res.render("urls_show", templateVars);
-});
-
-app.get("/u/:shortURL", (req, res) => {
+//CREATE NEW URLS
+app.post("/urls", (req, res) => {
   if (!req.session.user_id) {
     return res.redirect(401, "/login");
   }
-  res.redirect(urlDatabase[req.params.shortURL].longURL);
-});
-
-//post
-
-//CREATE NEW URL 
-app.post("/urls", (req, res) => {
-  if (!req.session.user_id) {
-    return res.redirect(401, "/login")
-  }
   const shortURL = generateRandomString();
-  let longURL = req.body.longURL
+  let longURL = req.body.longURL;
 
   if (!longURL.startsWith("http")) {
     longURL = `http://${longURL}`;
   }
 
-  urlDatabase[shortURL] = { 
+  urlDatabase[shortURL] = {
     longURL,
-    userID: req.session.user_id 
+    userID: req.session.user_id
   };
   res.redirect(`/urls/${shortURL}`);
+});
+
+app.get("/urls/new", (req, res) => {
+  if (!req.session.user_id) {
+    return res.redirect(401, "/login");
+  }
+  const templateVars = { user: users[req.session.user_id] };
+  res.render("urls_new", templateVars);
+});
+
+//CREATED URL INFO PAGE
+app.get("/urls/:shortURL", (req, res) => {
+  const templateVars = {
+    shortURL: req.params.shortURL,
+    longURL: urlDatabase[req.params.shortURL].longURL,
+    user: users[req.session.user_id],
+    urls: urlsForUser(req.session.user_id)
+  };
+  res.render("urls_show", templateVars);
+});
+
+//VIEW/EDIT EXISTING SHORT URL
+app.post("/urls/:shortURL", (req, res) => {
+  if (!req.session.user_id) {
+    return res.redirect(401, "/login");
+  }
+
+  if (req.session.user_id !== urlDatabase[req.params.shortURL].userID) {
+    return res.send("You do not have permission to edit this URL");
+  }
+
+  let longURL = req.body.longURL;
+  if (!longURL.startsWith("http")) {
+    longURL = `http://${longURL}`;
+  }
+
+  const shortURL = req.params.shortURL;
+  urlDatabase[shortURL].longURL = longURL;
+  res.redirect(`/urls/${shortURL}`);
+});
+
+//REDIRECTS TO EDIT URL PAGE
+app.get("/urls/:shortURL/edit", (req, res) => {
+  res.redirect(`/urls/${req.params.shortURL}`);
 });
 
 //DELETE EXISTING URL
@@ -135,28 +128,12 @@ app.post("/urls/:shortURL/delete", (req, res) => {
   res.redirect("/urls");
 });
 
-//EDIT EXISTING URL
-app.post("/urls/:shortURL", (req, res) => {
+//REDIRECT TO WEBSITE
+app.get("/u/:shortURL", (req, res) => {
   if (!req.session.user_id) {
-    return res.redirect(401, "/login")
+    return res.redirect(401, "/login");
   }
-
-  if (req.session.user_id !== urlDatabase[req.params.shortURL].userID) {
-    return res.send("You do not have permission to edit this URL");
-  }
-
-  let longURL = req.body.longURL;
-  if (!longURL.startsWith("http")) {
-    longURL = `http://${longURL}`;
-  }
-
-  const shortURL = req.params.shortURL
-  urlDatabase[shortURL].longURL = longURL;
-  res.redirect(`/urls/${shortURL}`);
-});
-
-app.get("/urls/:shortURL/edit", (req, res) => {
-  res.redirect(`/urls/${req.params.shortURL}`);
+  res.redirect(urlDatabase[req.params.shortURL].longURL);
 });
 
 //LOGIN
@@ -196,7 +173,7 @@ app.post("/register", (req, res) => {
   if (!email || !password) {
     return res.status(400).send("Invalid input");
   }
-  if (emailCheck(email)) {
+  if (emailCheck(email, users)) {
     return res.status(400).send("Email is already registered");
   }
 
@@ -209,12 +186,3 @@ app.post("/register", (req, res) => {
   req.session["user_id"] = newID;
   res.redirect("/urls");
 });
-
-const emailCheck = (email) => {
-  for (let user in users) {
-    if (users[user].email === email) {
-      return true;
-    }
-  }
-  return false;
-}
