@@ -1,24 +1,24 @@
 const express = require("express");
 const app = express();
-
-const PORT = 3000; // default port 8080
-
-app.set("view engine", "ejs");
-
 const bodyParser = require("body-parser");
-app.use(bodyParser.urlencoded({ extended: true }));
 const bcrypt = require("bcryptjs");
 const cookieParser = require("cookie-parser");
 const cookieSession = require("cookie-session");
+const PORT = 3000;
+const { getUserByEmail } = require("./helpers");
 
+app.set("view engine", "ejs");
+app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cookieSession({
   name: "session",
   keys: ["key1", "key2"]
 }));
-
-
-
 //-------------------------------------------------
+
+
+
+
+
 
 const generateRandomString = () => {
   const chars = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
@@ -59,7 +59,7 @@ const urlDatabase = {
 };
 
 app.get("/", (req, res) => {
-  res.send("Hello!");
+  res.redirect("/urls");
 });
 
 app.listen(PORT, () => {
@@ -167,7 +167,7 @@ app.get("/login", (req, res) => {
 
 app.post("/login", (req, res) => {
   const { email, password } = req.body;
-  let userInfo = emailCheck(email);
+  let userInfo = getUserByEmail(email, users);
 
   if (userInfo && bcrypt.compareSync(password, users[userInfo].password)) {
     req.session["user_id"] = users[userInfo].id;
@@ -213,7 +213,7 @@ app.post("/register", (req, res) => {
 const emailCheck = (email) => {
   for (let user in users) {
     if (users[user].email === email) {
-      return user;
+      return true;
     }
   }
   return false;
