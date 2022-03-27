@@ -1,13 +1,4 @@
-//Finds if user exists in the database
-const getUserByEmail = (email, database) => {
-  for (let user in database) {
-    if (database[user].email === email) {
-      return user;
-    }
-  }
-};
-
-//Checks if email is being used already
+//Checks if email exists in the database
 const emailCheck = (email, users) => {
   for (let user in users) {
     if (users[user].email === email) {
