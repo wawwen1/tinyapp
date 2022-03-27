@@ -1,11 +1,10 @@
-//Checks if email exists in the database
-const emailCheck = (email, users) => {
-  for (let user in users) {
-    if (users[user].email === email) {
-      return true;
+//Find if user exists in the database
+const getUserByEmail = (email, database) => {
+  for (let user in database) {
+    if (database[user].email === email) {
+      return user;
     }
   }
-  return false;
 };
 
 //Creates a random 6 character string
@@ -35,4 +34,4 @@ const urlsForUser = (id, database) => {
 
 
 
-module.exports = { getUserByEmail, emailCheck, generateRandomString, urlsForUser };
+module.exports = { getUserByEmail, generateRandomString, urlsForUser };
