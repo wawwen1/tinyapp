@@ -4,7 +4,7 @@ const bodyParser = require("body-parser");
 const bcrypt = require("bcryptjs");
 const cookieSession = require("cookie-session");
 const PORT = 3000;
-const { getUserByEmail, emailCheck, generateRandomString, urlsForUser } = require("./helpers");
+const { getUserByEmail, generateRandomString, urlsForUser } = require("./helpers");
 
 app.set("view engine", "ejs");
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -12,14 +12,6 @@ app.use(cookieSession({
   name: "session",
   keys: ["key1", "key2"]
 }));
-
-app.get("/urls.json", (req, res) => {
-  res.json(urlDatabase);
-});
-
-app.listen(PORT, () => {
-  console.log(`Example app listening on port ${PORT}!`);
-});
 
 //-------------------------------------------------
 
@@ -40,6 +32,10 @@ const urlDatabase = {
   'b2xTn2': { longURL: "http://www.lighthouselabs.ca", userID: "hahahey" },
   '9sm5xK': { longURL: "http://www.google.com", userID: "lolnice" }
 };
+
+app.get("/urls.json", (req, res) => {
+  res.json(urlDatabase);
+});
 
 app.get("/", (req, res) => {
   if (!req.session.user_id) {
@@ -190,7 +186,7 @@ app.post("/register", (req, res) => {
   if (!email || !password) {
     return res.status(400).send("Invalid input");
   }
-  if (emailCheck(email, users)) {
+  if (getUserByEmail(email, users)) {
     return res.status(400).send("Email is already registered");
   }
   const hashedPassword = bcrypt.hashSync(password, 10);
@@ -201,4 +197,8 @@ app.post("/register", (req, res) => {
   };
   req.session["user_id"] = newID;
   res.redirect("/urls");
+});
+
+app.listen(PORT, () => {
+  console.log(`Example app listening on port ${PORT}!`);
 });
