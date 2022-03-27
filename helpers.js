@@ -16,7 +16,7 @@ const generateRandomString = () => {
     result += chars.charAt(Math.floor(Math.random() * (chars.length)));
   }
   return result;
-}
+};
 
 //Filters URLs from the database associated with the user
 const urlsForUser = (id, database) => {
