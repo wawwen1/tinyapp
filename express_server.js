@@ -46,6 +46,9 @@ app.get("/", (req, res) => {
 
 //VIEW URLS
 app.get("/urls", (req, res) => {
+  if (!req.session.user_id) {
+    return res.redirect(401, "/login");
+  }
   const templateVars = {
     urls: urlsForUser(req.session.user_id, urlDatabase),
     user: users[req.session.user_id]
@@ -166,8 +169,8 @@ app.post("/login", (req, res) => {
 
 //LOGOUT
 app.post("/logout", (req, res) => {
-  req.session["user_id"] = null;
-  res.redirect("/urls");
+  req.session = null;
+  res.redirect("/login");
 });
 
 //REGISTER
