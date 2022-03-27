@@ -42,6 +42,9 @@ const urlDatabase = {
 };
 
 app.get("/", (req, res) => {
+  if (!req.session.user_id) {
+    res.redirect("/login");
+  }
   res.redirect("/urls");
 });
 
@@ -81,8 +84,17 @@ app.get("/urls/new", (req, res) => {
   res.render("urls_new", templateVars);
 });
 
-//CREATED URL INFO PAGE
+//SHORT URL INFO PAGE
 app.get("/urls/:shortURL", (req, res) => {
+  if (!urlDatabase[req.params.shortURL]) {
+    return res.status(404).send("URL does not exist!");
+  }
+  if (!req.session.user_id) {
+    return res.redirect(401, "/login");
+  }
+  if (req.session.user_id !== urlDatabase[req.params.shortURL].userID) {
+    return res.status(403).send("This URL does not belong to you");
+  }
   const templateVars = {
     shortURL: req.params.shortURL,
     longURL: urlDatabase[req.params.shortURL].longURL,
@@ -97,19 +109,16 @@ app.post("/urls/:shortURL", (req, res) => {
   if (!req.session.user_id) {
     return res.redirect(401, "/login");
   }
-
   if (req.session.user_id !== urlDatabase[req.params.shortURL].userID) {
-    return res.send("You do not have permission to edit this URL");
+    return res.status(403).send("This URL does not belong to you");
   }
-
   let longURL = req.body.longURL;
   if (!longURL.startsWith("http")) {
     longURL = `http://${longURL}`;
   }
-
   const shortURL = req.params.shortURL;
   urlDatabase[shortURL].longURL = longURL;
-  res.redirect(`/urls/${shortURL}`);
+  res.redirect("/urls/");
 });
 
 //REDIRECTS TO EDIT URL PAGE
@@ -119,25 +128,30 @@ app.get("/urls/:shortURL/edit", (req, res) => {
 
 //DELETE EXISTING URL
 app.post("/urls/:shortURL/delete", (req, res) => {
-  if (req.session.user_id !== urlDatabase[req.params.shortURL].userID) {
-    return res.send("You do not have permission to delete this URL");
+  if (!req.session.user_id) {
+    return res.redirect(401, "/login");
   }
-
+  if (req.session.user_id !== urlDatabase[req.params.shortURL].userID) {
+    return res.status(403).send("This URL does not belong to you");
+  }
   const shortURL = req.params.shortURL;
   delete urlDatabase[shortURL];
   res.redirect("/urls");
 });
 
-//REDIRECT TO WEBSITE
+//REDIRECT USER TO LONG URL
 app.get("/u/:shortURL", (req, res) => {
-  if (!req.session.user_id) {
-    return res.redirect(401, "/login");
+  if (!urlDatabase[req.params.shortURL]) {
+    return res.status(404).send("URL does not exist!");
   }
   res.redirect(urlDatabase[req.params.shortURL].longURL);
 });
 
 //LOGIN
 app.get("/login", (req, res) => {
+  if (req.session.user_id) {
+    res.redirect("/urls");
+  }
   const templateVars = { user: users[req.session.user_id] };
   res.render("urls_login", templateVars);
 });
@@ -162,6 +176,9 @@ app.post("/logout", (req, res) => {
 
 //REGISTER
 app.get("/register", (req, res) => {
+  if (req.session.user_id) {
+    return res.redirect("/urls");
+  }
   const templateVars = { user: users[req.session.user_id] };
   res.render("urls_register", templateVars);
 });
@@ -176,7 +193,6 @@ app.post("/register", (req, res) => {
   if (emailCheck(email, users)) {
     return res.status(400).send("Email is already registered");
   }
-
   const hashedPassword = bcrypt.hashSync(password, 10);
   users[newID] = {
     id: newID,
