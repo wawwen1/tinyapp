@@ -46,14 +46,11 @@ app.get("/", (req, res) => {
 
 //VIEW URLS
 app.get("/urls", (req, res) => {
-  if (!req.session.user_id) {
-    return res.redirect(401, "/login");
-  }
-  const templateVars = {
+    const templateVars = {
     urls: urlsForUser(req.session.user_id, urlDatabase),
     user: users[req.session.user_id]
-  };
-  res.render("urls_index", templateVars);
+    };
+    res.render("urls_index", templateVars);
 });
 
 //CREATE NEW URLS
