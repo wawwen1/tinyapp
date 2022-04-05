@@ -34,23 +34,26 @@ const urlDatabase = {
 };
 
 app.get("/urls.json", (req, res) => {
-  res.json(urlDatabase);
+  return res.json(urlDatabase);
 });
 
 app.get("/", (req, res) => {
   if (!req.session.user_id) {
-    res.redirect("/login");
+    return res.redirect("/login");
   }
-  res.redirect("/urls");
+  return res.redirect("/urls");
 });
 
 //VIEW URLS
 app.get("/urls", (req, res) => {
+  if (!req.session.user_id) {
+    return res.redirect(401, "/login");
+  }
     const templateVars = {
     urls: urlsForUser(req.session.user_id, urlDatabase),
     user: users[req.session.user_id]
     };
-    res.render("urls_index", templateVars);
+    return res.render("urls_index", templateVars);
 });
 
 //CREATE NEW URLS
@@ -69,7 +72,7 @@ app.post("/urls", (req, res) => {
     longURL,
     userID: req.session.user_id
   };
-  res.redirect(`/urls/${shortURL}`);
+  return res.redirect(`/urls/${shortURL}`);
 });
 
 app.get("/urls/new", (req, res) => {
@@ -77,7 +80,7 @@ app.get("/urls/new", (req, res) => {
     return res.redirect(401, "/login");
   }
   const templateVars = { user: users[req.session.user_id] };
-  res.render("urls_new", templateVars);
+  return res.render("urls_new", templateVars);
 });
 
 //SHORT URL INFO PAGE
@@ -97,7 +100,7 @@ app.get("/urls/:shortURL", (req, res) => {
     user: users[req.session.user_id],
     urls: urlsForUser(req.session.user_id)
   };
-  res.render("urls_show", templateVars);
+  return res.render("urls_show", templateVars);
 });
 
 //VIEW/EDIT EXISTING SHORT URL
@@ -114,12 +117,12 @@ app.post("/urls/:shortURL", (req, res) => {
   }
   const shortURL = req.params.shortURL;
   urlDatabase[shortURL].longURL = longURL;
-  res.redirect("/urls/");
+  return res.redirect("/urls/");
 });
 
 //REDIRECTS TO EDIT URL PAGE
 app.get("/urls/:shortURL/edit", (req, res) => {
-  res.redirect(`/urls/${req.params.shortURL}`);
+  return res.redirect(`/urls/${req.params.shortURL}`);
 });
 
 //DELETE EXISTING URL
@@ -132,7 +135,7 @@ app.post("/urls/:shortURL/delete", (req, res) => {
   }
   const shortURL = req.params.shortURL;
   delete urlDatabase[shortURL];
-  res.redirect("/urls");
+  return res.redirect("/urls");
 });
 
 //REDIRECT USER TO LONG URL
@@ -140,34 +143,38 @@ app.get("/u/:shortURL", (req, res) => {
   if (!urlDatabase[req.params.shortURL]) {
     return res.status(404).send("URL does not exist!");
   }
-  res.redirect(urlDatabase[req.params.shortURL].longURL);
+  return res.redirect(urlDatabase[req.params.shortURL].longURL);
 });
 
 //LOGIN
 app.get("/login", (req, res) => {
   if (req.session.user_id) {
-    res.redirect("/urls");
+    return res.redirect("/urls");
   }
   const templateVars = { user: users[req.session.user_id] };
-  res.render("urls_login", templateVars);
+  return res.render("urls_login", templateVars);
 });
 
 app.post("/login", (req, res) => {
   const { email, password } = req.body;
   let userInfo = getUserByEmail(email, users);
 
+  if (req.session.user_id) {
+    return res.redirect("/urls");
+  }
+
   if (userInfo && bcrypt.compareSync(password, users[userInfo].password)) {
     req.session["user_id"] = users[userInfo].id;
-    res.redirect("/urls");
+    return res.redirect("/urls");
   } else {
-    res.status(403).send("Email or password is incorrect");
+    return res.status(403).send("Email or password is incorrect");
   }
 });
 
 //LOGOUT
 app.post("/logout", (req, res) => {
   req.session = null;
-  res.redirect("/login");
+  return res.redirect("/login");
 });
 
 //REGISTER
@@ -176,7 +183,7 @@ app.get("/register", (req, res) => {
     return res.redirect("/urls");
   }
   const templateVars = { user: users[req.session.user_id] };
-  res.render("urls_register", templateVars);
+  return res.render("urls_register", templateVars);
 });
 
 app.post("/register", (req, res) => {
@@ -196,7 +203,7 @@ app.post("/register", (req, res) => {
     password: hashedPassword
   };
   req.session["user_id"] = newID;
-  res.redirect("/urls");
+  return res.redirect("/urls");
 });
 
 app.listen(PORT, () => {
